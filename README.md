@@ -1,4 +1,4 @@
-![Andromeda]([image-url](https://raw.githubusercontent.com/syphant/andromeda-web/refs/heads/main/logo.png) "Andromeda")
+![Andromeda](https://raw.githubusercontent.com/syphant/andromeda-web/refs/heads/main/logo.png "Andromeda")
 
 A modern, minimalist implementation of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.
 
