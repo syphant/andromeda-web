@@ -1,6 +1,14 @@
-![Andromeda](https://raw.githubusercontent.com/syphant/andromeda-web/refs/heads/main/logo.png "Andromeda")
+<p align="center">
+  <img src="https://raw.githubusercontent.com/syphant/andromeda-web/refs/heads/main/logo.png" /><br><br>
+</p>
 
-A modern, minimalist implementation of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.
+<p align="center">
+  A modern, minimalist implementation of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.
+</p>
+
+<p align="center">
+  <br><a href="https://andromedatv.cc/"><img src="https://img.shields.io/badge/DEMO-3388FE?style=for-the-badge"></a><br>
+</p>
 
 ## Features
 
