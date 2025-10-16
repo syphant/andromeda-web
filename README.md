@@ -22,7 +22,7 @@
 - **Real-time Schedule**: JavaScript consumes ErsatzTV's native XMLTV program guide to be displayed in a custom format with live updates
 - **Smart Time Display**: Clean time ranges with contextual date information
 - **Program Details**: Expandable episode/movie descriptions with smooth animations
-- **Episode Number / Release Year Display**: Movie release years and series episode numbers and episode titles are shown below the movie and series titles
+- **Episode Number / Release Year Display**: Movie release years, series episode numbers and episode titles are shown below the movie and series titles
 - **Live Indicator**: "LIVE" badge shown in schedule entry for currently playing content
 
 ### Design & UX
@@ -36,7 +36,7 @@
 ## Technology Stack
 
 - **Frontend**: HTML5, CSS, JavaScript + HLS.js library
-- **Backend**: Cloudflare Tunnel to Caddy for ErsatzTV XMLTV & M3U8 on isolated iptv path, Cloudflare Tunnel to Nginx for hosting HTML/CSS/JS and proxying transport stream
+- **Backend**: ErsatzTV, Cloudflare Tunnel, Caddy (for ErsatzTV XMLTV & M3U8 on isolated iptv path), Nginx (for hosting HTML/CSS/JS and proxying transport stream from ErsatzTV)
 
 ## File Structure
 
@@ -79,12 +79,15 @@ README.md                   # This file
 - In Cloudflare Tunnel, create another route to point just the domain "yourdomain.com" to LAN server running Nginx on another port of your choosing, example: "http://192.168.1.100:9884"
 
 ### Nginx Configuration
-The `nginx/default.conf` file provides:
+The `nginx/default.conf` file template provides:
 - Proxy pass to ErsatzTV stream endpoints (`/stream/`)
 - XMLTV guide data proxy (`/guide/`)
 - CORS headers for cross-origin requests
 - URL rewriting for seamless integration
-- Docker compose file for this nginx implementation:
+
+Simply replace `subdomain.yourdomain.com` in the `nginx/default.conf` file with what you configured in Cloudflare Tunnel.
+
+#### Example Nginx docker compose file for this implementation:
 ```
 services:
   nginx:
@@ -99,10 +102,11 @@ services:
 ```
 
 ### ErsatzTV Integration
-- **Stream URL**: `https://subdomain.yourdomain.com/iptv/channel/2.m3u8?mode=segmenter`
+- **Stream URL**: `https://subdomain.yourdomain.com/iptv/channel/4.m3u8?mode=segmenter`
 - **Guide Data**: `https://subdomain.yourdomain.com/iptv/xmltv.xml`
-- **Channel**: Currently configured for channel ID "2"
-- Example ErsatzTV docker compose file for this implementation:
+- **Channel**: Current JavaScript implementation is configured for channel 4 (XMLTV: `C4.148.ersatztv.org`)
+
+Example ErsatzTV docker compose file for this implementation:
 ```
 services:
   ersatztv:
