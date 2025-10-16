@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <br><a href="https://andromedatv.cc/"><img src="https://img.shields.io/badge/DEMO-3388FE?style=for-the-badge"></a><br>
+  <br><a href="https://andromedatv.cc/" target="_blank"><img src="https://img.shields.io/badge/DEMO-3388FE?style=for-the-badge"></a><br>
 </p>
 
 ## Features
