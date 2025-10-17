@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  A modern, minimalist implementation of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.
+  A modern implementation of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.
 </p>
 
 <p align="center">
@@ -12,45 +12,59 @@
 
 ## Features
 
-### Video Streaming
-- **Manual Play Control**: Click-to-connect streaming to avoid autoplay blocking due to browser policies
-- **HLS Support**: Compatible with both HLS.js and native HLS playback
-- **Minimal Controls**: Clean player interface with only volume control, fullscreen and PIP buttons
-- **Responsive Design**: Optimized for both desktop and mobile viewing
+### Video Player
+- Requires user interaction to connect to the stream to avoid issues with browser autoplay policies and prevents stream delay due to time between page load and clicking play
+- Clean player interface with minimal controls (only volume control, fullscreen and PIP buttons)
+- Responsive design compatible with desktop, tablet and mobile displays
 
-### TV Guide Integration
-- **Real-time Schedule**: JavaScript consumes ErsatzTV's native XMLTV program guide to be displayed in a custom format with live updates
-- **Smart Time Display**: Clean time ranges with contextual date information
-- **Program Details**: Expandable episode/movie descriptions with smooth animations
-- **Episode Number / Release Year Display**: Movie release years, series episode numbers and episode titles are shown below the movie and series titles
-- **Live Indicator**: "LIVE" badge shown in schedule entry for currently playing content
+### Schedule
+- JavaScript consumes ErsatzTV's native XMLTV program guide to be displayed in a custom format with 60s refresh interval
+- Displays time ranges intelligently with contextual date information
+- Click a schedule item to expand and display the episode/movie synopsis with smooth animations
+- Movie release years, series episode numbers and episode titles are shown below the main movie and series titles
+- "LIVE" badge shown on schedule entry for the currently playing content
+- Provides a separately accessible page with schedule display
+
+### IPTV Proxy
+- Extends ErsatzTV's IPTV capability by proxying M3U and XMLTV sources so they are reachable by IPTV clients remotely over the internet
+- Provides a separately accessible page with instructions for remote client IPTV setup
 
 ### Design & UX
-- **Pure Black & White**: Exclusively monochrome color scheme
-- **Custom Typography**: NewDetroit font for headers, Inter for body text
-- **Smooth Animations**: Cubic-bezier transitions for schedule updates
-- **Mobile Optimized**: Touch-friendly interface with clean layouts
-- **Progressive Enhancement**: Graceful fallbacks for all browser capabilities
-- **Browser-Theme-Dependent Favicon**: Via realfavicongenerator.net
+- Monochrome dark theme
+- NewDetroit font for headers, Inter for body text, JetBrains Mono for monospaced text
+- Smooth cubic-bezier transition animations for schedule updates
+- Touch-friendly interface for mobile devices
+- Graceful fallbacks for all browser capabilities
+- Browser-theme-dependent favicon generated with [realfavicongenerator.net](https://realfavicongenerator.net)
 
 ## Technology Stack
 
 - **Frontend**: HTML5, CSS, JavaScript + HLS.js library
-- **Backend**: ErsatzTV, Cloudflare Tunnel, Caddy (for ErsatzTV XMLTV & M3U8 on isolated iptv path), Nginx (for hosting HTML/CSS/JS and proxying transport stream from ErsatzTV)
+- **Backend**: ErsatzTV, Cloudflare Tunnel, Caddy (for ErsatzTV XMLTV & M3U8 on isolated `iptv/*` path), Nginx (for hosting HTML/CSS/JavaScript and proxying http transport stream from ErsatzTV)
 
 ## File Structure
 
 ```
-html/
-├── index.html              # Main page with video player and schedule
-├── schedule.html           # Dedicated schedule page
-├── iptv.html               # IPTV instructions page
-├── newdetroit.ttf          # Custom font file
-├── *.png/*.ico/*.svg       # Favicons / web app icons
-└── site.webmanifest        # Web app manifest
 nginx/
-└── default.conf            # Nginx proxy config
-README.md                   # This file
+  └── default.conf             # Nginx config template
+webroot/
+  ├── index.html               # Main page with video player and schedule
+  ├── iptv.html                # IPTV setup instructions page
+  ├── schedule.html            # Dedicated schedule page
+  ├── css/
+  │     ├── index.css          # Stylesheet for main page
+  │     ├── iptv.css           # Stylesheet for IPTV page
+  │     └── schedule.css       # Stylesheet for schedule page
+  ├── js/
+  │     ├── index.js           # Scripts for main page
+  │     ├── iptv.js            # Scripts for IPTV page
+  │     └── schedule.js        # Scripts for schedule page
+  ├── favicon/
+  │     ├── *.png/*.ico/*.svg  # Favicons / web app icons
+  │     └── site.webmanifest   # Web app manifest
+  └── fonts/
+        └── newdetroit.ttf     # Custom font file
+README.md                      # This file
 ```
 
 ## Setup & Configuration
@@ -62,9 +76,28 @@ README.md                   # This file
 - Caddy
 - Your own domain
 
-### Cloudflare Tunnel & Caddy Configuration
-- In Cloudflare Tunnel, create a route to point your subdomain to your LAN server running Caddy on port 80, example: "http://192.168.1.100:80"
-- In Caddyfile, add entry to point these subdomain requests to ErsatzTV, restricted to ONLY the "[https://subdomain.yourdomain.com/iptv/*]()" path so that the ErsatzTV admin UI is NOT exposed:
+### Caddy Configuration
+#### Example Caddy docker compose file for this implementation (using Caddy build with Cloudflare module):
+```
+services:
+  caddy:
+    image: ghcr.io/caddybuilds/caddy-cloudflare:latest
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/site:/srv
+      - ./caddy/caddy_data:/data
+      - ./caddy/caddy_config:/config
+    environment:
+      - CLOUDFLARE_API_TOKEN=<xxxxxxxxxxxxxxxxx>
+```
+- In Caddyfile, use the below config to point these subdomain requests to ErsatzTV, restricted to **ONLY** the `https://subdomain.yourdomain.com/iptv/*` path so that the ErsatzTV admin UI is **NOT** exposed:
 ```
 :80 {
     handle /iptv/* {
@@ -73,10 +106,13 @@ README.md                   # This file
     respond "Not Found" 404
 }
 ```
-- Confirm ErsatzTV admin UI **is not** accessible at https://subdomain.yourdomain.com (should get a "Not Found" 404 error)
-- Confirm xmltv.xml **is** accessible at https://subdomain.yourdomain.com/iptv/xmltv.xml
-- Confirm m3u8 file **is** accessible at [https://subdomain.yourdomain.com/iptv/channel/`<channel_number>`.m3u8?mode=segmenter]()
-- In Cloudflare Tunnel, create another route to point just the domain "yourdomain.com" to LAN server running Nginx on another port of your choosing, example: "http://192.168.1.100:9884"
+
+### Cloudflare Tunnel Configuration
+- In Cloudflare Tunnel, create an http (not https) route to point `subdomain.yourdomain.com` to your LAN server running Caddy, example: `http://192.168.1.100:80`
+- In Cloudflare Tunnel, create another route to point just the domain `yourdomain.com` to LAN server running Nginx on another port of your choosing, example: `http://192.168.1.100:9884`
+- Confirm ErsatzTV admin UI **is not** accessible at `https://subdomain.yourdomain.com` (you should get a "Not Found" 404 error)
+- Confirm xmltv.xml **is** accessible at `https://subdomain.yourdomain.com/iptv/xmltv.xml`
+- Confirm m3u8 file **is** accessible at `https://subdomain.yourdomain.com/iptv/channel/<channel_number>.m3u8?mode=segmenter`
 
 ### Nginx Configuration
 The `nginx/default.conf` file template provides:
@@ -84,8 +120,7 @@ The `nginx/default.conf` file template provides:
 - XMLTV guide data proxy (`/guide/`)
 - CORS headers for cross-origin requests
 - URL rewriting for seamless integration
-
-Simply replace `subdomain.yourdomain.com` in the `nginx/default.conf` file with what you configured in Cloudflare Tunnel.
+- Simply replace `subdomain.yourdomain.com` in the `nginx/default.conf` file with what you configured in Cloudflare Tunnel
 
 #### Example Nginx docker compose file for this implementation:
 ```
@@ -96,17 +131,17 @@ services:
     ports:
       - 9884:80
     volumes:
-      - /path/to/here/html:/usr/share/nginx/html:ro
-      - /path/to/here/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /path/to/repo/webroot:/usr/share/nginx/html:ro
+      - /path/to/repo/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
 ```
 
 ### ErsatzTV Integration
 - **Stream URL**: `https://subdomain.yourdomain.com/iptv/channel/4.m3u8?mode=segmenter`
 - **Guide Data**: `https://subdomain.yourdomain.com/iptv/xmltv.xml`
-- **Channel**: Current JavaScript implementation is configured for channel 4 (XMLTV: `C4.148.ersatztv.org`)
+- **Channel**: Current JavaScript implementation is configured for channel 4 (XMLTV: `C4.148.ersatztv.org`), you can change this in the JS scripts if needed
 
-Example ErsatzTV docker compose file for this implementation:
+#### Example ErsatzTV docker compose file for this implementation:
 ```
 services:
   ersatztv:
@@ -117,32 +152,13 @@ services:
     devices:
       - /dev/dri:/dev/dri
     volumes:
-      - ./config:/config
+      - ./ersatztv/config:/config
       - /path/to/media:/media
       - type: tmpfs
         target: /transcode
     environment:
       - TZ=America/New_York
 ```
-
-## Key Features Explained
-
-### Manual Connection System
-Unlike traditional video players, Andromeda requires user interaction to connect to the stream. This design choice:
-- Ensures unmuted playback (due to browser autoplay policies)
-- Provides real-time stream access when user is ready (prevents buffering delay due to time between page load and clicking play)
-
-### Smart Time Formatting
-The schedule displays times intelligently:
-- **Today**: Simple time ranges (6:19 PM - 6:48 PM)
-- **Future Days**: Clean format with separate date line
-- **Cross-day Programs**: Handles midnight crossings gracefully
-
-### Expandable Program Details
-- Click any program with a description to expand
-- Smooth animations with staggered timing
-- HTML content sanitization for safe display
-- Automatic cleanup of animation classes
 
 ## Browser Compatibility
 
@@ -152,47 +168,9 @@ The schedule displays times intelligently:
 - **Mobile Browsers**: Optimized touch interface
 - **Legacy Browsers**: Graceful degradation
 
-## Customization
-
-### Colors
-The interface uses a pure black and white color scheme for a "Y2K underground adult swim / toonami" vibe:
-- Background: `#000000` (pure black)
-- Text: `#ffffff` (pure white)
-- Secondary: Various grays (`#cccccc`, `#aaaaaa`, etc.)
-
-### Fonts
-- **Headers**: NewDetroit (custom) → Inter → sans-serif
-- **Body**: Inter → sans-serif
-- **Sizes**: Optimized for readability across devices
-
-### Animation Timing
-- Schedule updates: 400ms cubic-bezier transitions
-- Hover effects: 300ms ease transitions
-- Program expansions: 400ms cubic-bezier(0.4, 0, 0.2, 1)
-
-## Development Notes
-
-### JavaScript Architecture
-- Modular function design with clear separation of concerns
-- Event-driven updates with 60-second guide refresh intervals
-- Error handling with user-friendly fallbacks
-- Progressive enhancement principles
-
-### CSS Methodology
-- Mobile-first responsive design
-- Component-based styling approach
-- CSS custom properties for maintainability
-- Performance-optimized animations
-
-### Data Handling
-- XMLTV parsing with DOMParser
-- Time zone aware date/time processing
-- HTML sanitization for security
-- Graceful handling of missing data
-
 ## Future Enhancements
 
 Potential improvements for future versions:
-- Support for switching between multiple channels
+- Support for switching between multiple channels (maybe)
 
 ---
