@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
+    <link rel="shortcut icon" href="favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Andromeda IPTV" />
+    <link rel="manifest" href="favicon/site.webmanifest" />
+    <title>IPTV - Andromeda</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/iptv.css">
+    <script src="js/iptv.js"></script>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <div class="container">
+            <a href="/" class="back-link">
+                ← back
+            </a>
+
+        <h1>IPTV Setup</h1>
+
+        <div class="urls-section">
+            <h2>Connection URLs</h2>
+            
+            <div class="url-group">
+                <div class="url-label">M3U:</div>
+                <div class="url-box" onclick="copyToClipboard(this, 'https://subdomain.yourdomain.com/iptv/channels.m3u')">
+                    https://subdomain.yourdomain.com/iptv/channels.m3u
+                </div>
+            </div>
+
+            <div class="url-group">
+                <div class="url-label">XMLTV:</div>
+                <div class="url-box" onclick="copyToClipboard(this, 'https://subdomain.yourdomain.com/iptv/xmltv.xml')">
+                    https://subdomain.yourdomain.com/iptv/xmltv.xml
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h2>Setup Instructions</h2>
+            
+            <p><strong>For most IPTV clients (TiviMate, IPTV Smarters, etc):</strong></p>
+            <ul>
+                <li>Look for "Add Playlist" or "M3U URL" option</li>
+                <li>Enter the M3U URL provided above</li>
+                <li>If your client supports EPG (Electronic Program Guide), add the XMLTV URL</li>
+                <li>Save and refresh your channel list</li>
+            </ul>
+
+            <div class="note">
+                <p><strong>Note:</strong> The channel list and program guide are updated automatically. If you experience any issues, try refreshing your playlist or restarting your IPTV client.</p>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/schedule">Schedule</a>
+            <!--<a href="mailto:email@example.com">Contact</a>-->
+        </div>
+    </footer>
+</body>
+
+</html>
