@@ -7,7 +7,7 @@ function initializeStreamAndPlay() {
     if (streamStarted) return;
 
     video = document.getElementById('andromeda-player');
-    const streamUrl = '/stream/channel/4.m3u8?mode=segmenter';
+    const streamUrl = '/stream/channel/1.m3u8?mode=segmenter';
 
     console.log('Connecting to stream...');
 
@@ -183,7 +183,7 @@ function parseTVGuide(xmlText) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
 
-    const programmes = xmlDoc.querySelectorAll('programme[channel="C4.148.ersatztv.org"]');
+    const programmes = xmlDoc.querySelectorAll('programme[channel="C1.145.ersatztv.org"]');
 
     if (programmes.length === 0) {
         console.log('No schedule data found for channel');

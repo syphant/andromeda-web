@@ -26,7 +26,7 @@ function parseTVGuide(xmlText) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
 
-    const programmes = xmlDoc.querySelectorAll('programme[channel="C4.148.ersatztv.org"]');
+    const programmes = xmlDoc.querySelectorAll('programme[channel="C1.145.ersatztv.org"]');
 
     if (programmes.length === 0) {
         console.log('No schedule data found for channel');
