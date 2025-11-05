@@ -2,6 +2,7 @@ let hls;
 let video;
 let streamStarted = false;
 let streamReady = false;
+const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
 
 function initializeStreamAndPlay() {
     if (streamStarted) return;
@@ -153,6 +154,131 @@ function hideOverflowMenu() {
             }
         });
     }, 1000);
+}
+
+function enableFirefoxCustomControls(videoElement, videoContainer) {
+    if (!videoElement || !videoContainer) {
+        return;
+    }
+
+    if (videoContainer.querySelector('.firefox-controls')) {
+        return;
+    }
+
+    videoElement.controls = false;
+    videoContainer.classList.add('firefox-controls-enabled');
+
+    const controls = document.createElement('div');
+    controls.className = 'firefox-controls';
+    controls.innerHTML = `
+        <button type="button" class="firefox-control-btn mute-btn" aria-label="Mute">
+            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+        </button>
+        <input type="range" class="firefox-volume-slider" min="0" max="1" step="0.01" value="${videoElement.muted ? 0 : videoElement.volume}">
+        <button type="button" class="firefox-control-btn fullscreen-btn" aria-label="Enter fullscreen">⛶</button>
+    `;
+
+    const hotspot = document.createElement('div');
+    hotspot.className = 'firefox-controls-hotspot';
+
+    videoContainer.appendChild(hotspot);
+    videoContainer.appendChild(controls);
+
+    const muteButton = controls.querySelector('.mute-btn');
+    const volumeSlider = controls.querySelector('.firefox-volume-slider');
+    const fullscreenButton = controls.querySelector('.fullscreen-btn');
+    let hideControlsTimeout;
+
+    const showControls = () => {
+        clearTimeout(hideControlsTimeout);
+        videoContainer.classList.add('controls-visible');
+    };
+
+    const scheduleHideControls = () => {
+        clearTimeout(hideControlsTimeout);
+        hideControlsTimeout = window.setTimeout(() => {
+            if (!videoContainer.contains(document.activeElement)) {
+                videoContainer.classList.remove('controls-visible');
+            }
+        }, 200);
+    };
+
+    const muteIcon = muteButton ? muteButton.querySelector('i') : null;
+
+    const syncVolumeUi = () => {
+        const isMuted = videoElement.muted || videoElement.volume === 0;
+        if (volumeSlider) {
+            const newValue = isMuted ? 0 : videoElement.volume;
+            if (parseFloat(volumeSlider.value) !== newValue) {
+                volumeSlider.value = newValue;
+            }
+        }
+        if (muteButton) {
+            muteButton.setAttribute('aria-label', isMuted ? 'Unmute' : 'Mute');
+        }
+        if (muteIcon) {
+            muteIcon.classList.toggle('fa-volume-xmark', isMuted);
+            muteIcon.classList.toggle('fa-volume-high', !isMuted);
+        }
+    };
+
+    const syncFullscreenUi = () => {
+        const isFullscreen = document.fullscreenElement === videoContainer;
+        if (fullscreenButton) {
+            fullscreenButton.textContent = isFullscreen ? '🗗' : '⛶';
+            fullscreenButton.setAttribute('aria-label', isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen');
+            fullscreenButton.classList.toggle('active', isFullscreen);
+        }
+    };
+
+    if (muteButton) {
+        muteButton.addEventListener('click', () => {
+            const willMute = !(videoElement.muted || videoElement.volume === 0);
+            if (willMute) {
+                videoElement.muted = true;
+            } else {
+                videoElement.muted = false;
+                if (videoElement.volume === 0) {
+                    videoElement.volume = 0.5;
+                }
+            }
+        });
+    }
+
+    if (volumeSlider) {
+        volumeSlider.addEventListener('input', (event) => {
+            const value = parseFloat(event.target.value);
+            videoElement.volume = value;
+            videoElement.muted = value === 0;
+        });
+    }
+
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', () => {
+            if (document.fullscreenElement === videoContainer) {
+                document.exitFullscreen().catch(() => {});
+            } else if (videoContainer.requestFullscreen) {
+                videoContainer.requestFullscreen().catch(() => {});
+            }
+        });
+    }
+
+    hotspot.addEventListener('mouseenter', showControls);
+    hotspot.addEventListener('mouseleave', scheduleHideControls);
+
+    controls.addEventListener('mouseenter', showControls);
+    controls.addEventListener('mouseleave', scheduleHideControls);
+    controls.addEventListener('focusin', showControls);
+    controls.addEventListener('focusout', scheduleHideControls);
+
+    videoContainer.addEventListener('mouseleave', scheduleHideControls);
+
+    videoElement.addEventListener('volumechange', syncVolumeUi);
+    document.addEventListener('fullscreenchange', syncFullscreenUi);
+
+    syncVolumeUi();
+    syncFullscreenUi();
+    scheduleHideControls();
 }
 
 let currentPrograms = [];
@@ -555,15 +681,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoElement = document.getElementById('andromeda-player');
     const videoContainer = document.querySelector('.video-container');
 
-    videoElement.setAttribute('controls', false);
+    if (isFirefox) {
+        enableFirefoxCustomControls(videoElement, videoContainer);
+    } else if (videoElement && videoContainer) {
+        const showNativeControls = () => videoElement.setAttribute('controls', '');
+        const hideNativeControls = () => videoElement.removeAttribute('controls');
 
-    videoContainer.addEventListener('mouseenter', function() {
-        videoElement.setAttribute('controls', true);
-    });
-
-    videoContainer.addEventListener('mouseleave', function() {
-        videoElement.setAttribute('controls', false);
-    });
+        hideNativeControls();
+        videoContainer.addEventListener('mouseenter', showNativeControls);
+        videoContainer.addEventListener('mouseleave', hideNativeControls);
+        videoElement.addEventListener('focus', showNativeControls);
+        videoElement.addEventListener('blur', hideNativeControls);
+    } else if (videoElement) {
+        videoElement.setAttribute('controls', '');
+    }
 
     if (videoElement) {
         videoElement.addEventListener('loadedmetadata', matchGuideHeightToVideo);

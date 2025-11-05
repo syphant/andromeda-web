@@ -67,7 +67,7 @@
  #andromeda-player {
      width: 100%;
      height: auto;
-     background: #000;
+     background: #00000000;
      border-radius: 12px;
      display: block;
      aspect-ratio: 16/9;
@@ -81,23 +81,22 @@
      transform: translate(-50%, -50%);
      background: rgba(0, 0, 0, 0.0);
      color: #ffffff;
-     padding: 32px 48px;
+     padding: 0px 0px;
      cursor: pointer;
      font-size: 16px;
      font-weight: 500;
      z-index: 1000;
      transition: all 0.3s ease;
      text-align: center;
-     min-width: 140px;
  }
 
  .click-to-play:hover {
      background: rgba(255, 255, 255, 0.0);
-     transform: translate(-50%, -50%) scale(1.08);
+     transform: translate(-50%, -50%) scale(1.2);
  }
 
  .play-icon {
-     font-size: 32px;
+     font-size: 64px;
      margin-bottom: 8px;
      line-height: 1;
  }
@@ -162,6 +161,123 @@
      pointer-events: auto;
      background: transparent;
  }
+
+.video-container.firefox-controls-enabled::before {
+    bottom: 68px;
+}
+
+.video-container.firefox-controls-enabled .firefox-controls {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    left: auto;
+    top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 25;
+}
+
+.video-container.firefox-controls-enabled.controls-visible .firefox-controls,
+.video-container.firefox-controls-enabled .firefox-controls:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.video-container.firefox-controls-enabled .firefox-controls-hotspot {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 160px;
+    height: 120px;
+    pointer-events: auto;
+    background: transparent;
+    z-index: 15;
+}
+
+.firefox-control-btn {
+    appearance: none;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.firefox-control-btn .fa-solid {
+    font-size: 18px;
+    pointer-events: none;
+}
+
+.firefox-control-btn:hover,
+.firefox-control-btn:focus {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.4);
+    outline: none;
+}
+
+.firefox-control-btn.active {
+    background: rgba(255, 255, 255, 0.38);
+}
+
+.firefox-volume-slider {
+    flex: 1;
+    cursor: pointer;
+    min-width: 0;
+    max-width: 100px;
+    background: transparent;
+    border: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    height: 4px;
+}
+
+.firefox-volume-slider:focus {
+    outline: none;
+}
+
+.firefox-volume-slider::-moz-range-track {
+    background: rgba(255, 255, 255, 0.25);
+    height: 4px;
+    border-radius: 999px;
+}
+
+.firefox-volume-slider::-moz-range-progress {
+    background: #ffffff;
+    height: 4px;
+    border-radius: 999px;
+}
+
+.firefox-volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: #ffffff;
+}
+
+.firefox-volume-slider::-moz-focus-outer {
+    border: 0;
+}
 
  #andromeda-player::-webkit-media-controls-panel {
      z-index: 20 !important;
