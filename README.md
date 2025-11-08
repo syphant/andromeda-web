@@ -132,7 +132,7 @@ services:
 ```
 
 ### ErsatzTV Integration
-- **Stream URL**: `https://subdomain.yourdomain.com/iptv/channel/4.m3u8?mode=segmenter`
+- **Stream URL**: `https://subdomain.yourdomain.com/iptv/channel/1.m3u8?mode=segmenter`
 - **Guide Data**: `https://subdomain.yourdomain.com/iptv/xmltv.xml`
 - **Channel**: Current scripts are configured for `C1.148.ersatztv.org`, you can change this in the `index.js` file if needed based on the channel ID shown in your XMLTV file
 
