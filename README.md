@@ -1,7 +1,7 @@
 <div align="center">
   <h2>Andromeda</h2>
   <p>A customizable template of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.</p><br>
-  <img src="https://raw.githubusercontent.com/ccorb324/andromeda-web/refs/heads/main/preview.png" />
+  <img src="https://raw.githubusercontent.com/chriscorbell/andromeda-web/refs/heads/main/preview.png" />
 </div>
 
 
