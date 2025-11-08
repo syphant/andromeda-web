@@ -15,13 +15,13 @@ function initializeStreamAndPlay() {
     video.playbackRate = 1.0;
 
     Object.defineProperty(video, 'playbackRate', {
-        get: function() {
+        get: function () {
             return 1.0;
         },
-        set: function(value) {}
+        set: function (value) { }
     });
 
-    video.addEventListener('click', function(e) {
+    video.addEventListener('click', function (e) {
         if (!e.target.closest('[class*="controls"]')) {
             e.preventDefault();
             e.stopPropagation();
@@ -33,12 +33,12 @@ function initializeStreamAndPlay() {
         }
     }, true);
 
-    video.pause = function() {
+    video.pause = function () {
         console.log('Pause blocked (this is a livestream)');
         return false;
     };
 
-    video.addEventListener('pause', function(e) {
+    video.addEventListener('pause', function (e) {
         console.log('Pause event detected, resuming...');
         setTimeout(() => {
             if (video.paused && streamStarted) {
@@ -47,7 +47,7 @@ function initializeStreamAndPlay() {
         }, 10);
     });
 
-    video.addEventListener('keydown', function(e) {
+    video.addEventListener('keydown', function (e) {
         if (e.code === 'Space') {
             e.preventDefault();
             return false;
@@ -64,7 +64,7 @@ function initializeStreamAndPlay() {
         hls.loadSource(streamUrl);
         hls.attachMedia(video);
 
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
             console.log('Stream manifest loaded, starting playback...');
             video.muted = false;
             video.play().then(() => {
@@ -79,7 +79,7 @@ function initializeStreamAndPlay() {
             });
         });
 
-        hls.on(Hls.Events.ERROR, function(event, data) {
+        hls.on(Hls.Events.ERROR, function (event, data) {
             console.error('HLS error:', data);
             if (data.fatal) {
                 switch (data.type) {
@@ -101,7 +101,7 @@ function initializeStreamAndPlay() {
 
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = streamUrl;
-        video.addEventListener('loadedmetadata', function() {
+        video.addEventListener('loadedmetadata', function () {
             console.log('Stream loaded (native HLS) - starting playback...');
             video.muted = false;
             video.play().then(() => {
@@ -115,7 +115,7 @@ function initializeStreamAndPlay() {
             });
         });
 
-        video.addEventListener('error', function(e) {
+        video.addEventListener('error', function (e) {
             console.error('Video error:', e);
         });
     } else {
@@ -171,11 +171,15 @@ function enableFirefoxCustomControls(videoElement, videoContainer) {
     const controls = document.createElement('div');
     controls.className = 'firefox-controls';
     controls.innerHTML = `
-        <button type="button" class="firefox-control-btn mute-btn" aria-label="Mute">
-            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+        <div class="firefox-volume-control">
+            <input type="range" class="firefox-volume-slider" min="0" max="1" step="0.01" value="${videoElement.muted ? 0 : videoElement.volume}">
+            <button type="button" class="firefox-control-btn mute-btn" aria-label="Mute">
+                <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+            </button>
+        </div>
+        <button type="button" class="firefox-control-btn fullscreen-btn" aria-label="Enter fullscreen">
+            <i class="fa-solid fa-expand" aria-hidden="true"></i>
         </button>
-        <input type="range" class="firefox-volume-slider" min="0" max="1" step="0.01" value="${videoElement.muted ? 0 : videoElement.volume}">
-        <button type="button" class="firefox-control-btn fullscreen-btn" aria-label="Enter fullscreen">⛶</button>
     `;
 
     const hotspot = document.createElement('div');
@@ -187,20 +191,38 @@ function enableFirefoxCustomControls(videoElement, videoContainer) {
     const muteButton = controls.querySelector('.mute-btn');
     const volumeSlider = controls.querySelector('.firefox-volume-slider');
     const fullscreenButton = controls.querySelector('.fullscreen-btn');
+    const fullscreenIcon = fullscreenButton ? fullscreenButton.querySelector('i') : null;
+    const IDLE_HIDE_DELAY = 5000;
+    const LEAVE_HIDE_DELAY = 250;
+    const INITIAL_HIDE_DELAY = 1200;
     let hideControlsTimeout;
+    let pointerInside = false;
 
     const showControls = () => {
         clearTimeout(hideControlsTimeout);
         videoContainer.classList.add('controls-visible');
     };
 
-    const scheduleHideControls = () => {
+    const scheduleHideControls = (delay) => {
+        const effectiveDelay = typeof delay === 'number' ? delay : (pointerInside ? IDLE_HIDE_DELAY : INITIAL_HIDE_DELAY);
         clearTimeout(hideControlsTimeout);
         hideControlsTimeout = window.setTimeout(() => {
             if (!videoContainer.contains(document.activeElement)) {
                 videoContainer.classList.remove('controls-visible');
+                pointerInside = false;
             }
-        }, 200);
+        }, effectiveDelay);
+    };
+
+    const handlePointerActivity = () => {
+        pointerInside = true;
+        showControls();
+        scheduleHideControls(IDLE_HIDE_DELAY);
+    };
+
+    const handlePointerLeave = () => {
+        pointerInside = false;
+        scheduleHideControls(LEAVE_HIDE_DELAY);
     };
 
     const muteIcon = muteButton ? muteButton.querySelector('i') : null;
@@ -225,9 +247,13 @@ function enableFirefoxCustomControls(videoElement, videoContainer) {
     const syncFullscreenUi = () => {
         const isFullscreen = document.fullscreenElement === videoContainer;
         if (fullscreenButton) {
-            fullscreenButton.textContent = isFullscreen ? '🗗' : '⛶';
             fullscreenButton.setAttribute('aria-label', isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen');
             fullscreenButton.classList.toggle('active', isFullscreen);
+            if (fullscreenIcon) {
+                fullscreenIcon.classList.remove('fa-up-right-and-down-left-from-center', 'fa-down-left-and-up-right-to-center');
+                fullscreenIcon.classList.toggle('fa-expand', !isFullscreen);
+                fullscreenIcon.classList.toggle('fa-compress', isFullscreen);
+            }
         }
     };
 
@@ -251,34 +277,140 @@ function enableFirefoxCustomControls(videoElement, videoContainer) {
             videoElement.volume = value;
             videoElement.muted = value === 0;
         });
-    }
 
-    if (fullscreenButton) {
-        fullscreenButton.addEventListener('click', () => {
-            if (document.fullscreenElement === videoContainer) {
-                document.exitFullscreen().catch(() => {});
-            } else if (videoContainer.requestFullscreen) {
-                videoContainer.requestFullscreen().catch(() => {});
+        volumeSlider.addEventListener('pointerup', () => {
+            volumeSlider.blur();
+            if (!pointerInside) {
+                scheduleHideControls(LEAVE_HIDE_DELAY);
+            }
+        });
+
+        volumeSlider.addEventListener('mouseleave', () => {
+            if (!pointerInside) {
+                scheduleHideControls(LEAVE_HIDE_DELAY);
+            }
+        });
+
+        volumeSlider.addEventListener('blur', () => {
+            if (!pointerInside) {
+                scheduleHideControls(LEAVE_HIDE_DELAY);
             }
         });
     }
 
-    hotspot.addEventListener('mouseenter', showControls);
-    hotspot.addEventListener('mouseleave', scheduleHideControls);
+    const requestOrientationLock = () => {
+        const orientation = screen.orientation || screen.mozOrientation || screen.msOrientation;
+        if (orientation && orientation.lock) {
+            orientation.lock('landscape').catch(() => { });
+        }
+    };
 
-    controls.addEventListener('mouseenter', showControls);
-    controls.addEventListener('mouseleave', scheduleHideControls);
-    controls.addEventListener('focusin', showControls);
-    controls.addEventListener('focusout', scheduleHideControls);
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', async () => {
+            const exitFullscreen = async () => {
+                if (document.fullscreenElement) {
+                    try {
+                        await document.exitFullscreen();
+                    } catch (err) {
+                        console.warn('Failed to exit fullscreen:', err);
+                    }
+                }
+            };
 
-    videoContainer.addEventListener('mouseleave', scheduleHideControls);
+            const requestFullscreen = async (element) => {
+                if (!element) return false;
+                try {
+                    if (element.requestFullscreen) {
+                        await element.requestFullscreen();
+                        return true;
+                    }
+                    if (element.webkitRequestFullscreen) {
+                        await element.webkitRequestFullscreen();
+                        return true;
+                    }
+                    if (element.mozRequestFullScreen) {
+                        await element.mozRequestFullScreen();
+                        return true;
+                    }
+                    if (element.msRequestFullscreen) {
+                        await element.msRequestFullscreen();
+                        return true;
+                    }
+                } catch (err) {
+                    console.warn('Fullscreen request failed:', err);
+                }
+                return false;
+            };
+
+            if (document.fullscreenElement === videoContainer || document.fullscreenElement === videoElement) {
+                await exitFullscreen();
+                return;
+            }
+
+            const prefersVideoFullscreen = window.matchMedia('(pointer: coarse)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+            let entered = false;
+            if (prefersVideoFullscreen) {
+                entered = await requestFullscreen(videoElement);
+            }
+
+            if (!entered) {
+                entered = await requestFullscreen(videoContainer);
+            }
+
+            if (!entered) {
+                // Last resort, try the video element again.
+                entered = await requestFullscreen(videoElement);
+            }
+
+            if (entered) {
+                requestOrientationLock();
+            }
+        });
+    }
+
+    hotspot.addEventListener('pointerenter', handlePointerActivity);
+    hotspot.addEventListener('pointermove', handlePointerActivity);
+    hotspot.addEventListener('pointerdown', handlePointerActivity);
+    hotspot.addEventListener('mousemove', handlePointerActivity);
+    hotspot.addEventListener('mouseleave', handlePointerLeave);
+    hotspot.addEventListener('pointerleave', handlePointerLeave);
+
+    controls.addEventListener('pointerenter', handlePointerActivity);
+    controls.addEventListener('pointermove', handlePointerActivity);
+    controls.addEventListener('pointerdown', handlePointerActivity);
+    controls.addEventListener('mousemove', handlePointerActivity);
+    controls.addEventListener('mouseleave', handlePointerLeave);
+    controls.addEventListener('pointerleave', handlePointerLeave);
+    controls.addEventListener('focusin', () => {
+        showControls();
+        scheduleHideControls(IDLE_HIDE_DELAY);
+    });
+    controls.addEventListener('focusout', () => scheduleHideControls());
+
+    videoElement.addEventListener('pointerenter', handlePointerActivity);
+    videoElement.addEventListener('pointermove', handlePointerActivity);
+    videoElement.addEventListener('pointerdown', handlePointerActivity);
+    videoElement.addEventListener('mousemove', handlePointerActivity);
+    videoElement.addEventListener('mouseleave', handlePointerLeave);
+    videoElement.addEventListener('pointerleave', handlePointerLeave);
+
+    videoContainer.addEventListener('pointerenter', handlePointerActivity);
+    videoContainer.addEventListener('pointermove', handlePointerActivity);
+    videoContainer.addEventListener('pointerdown', handlePointerActivity);
+    videoContainer.addEventListener('mousemove', handlePointerActivity);
+    videoContainer.addEventListener('mouseleave', handlePointerLeave);
+    videoContainer.addEventListener('pointerleave', handlePointerLeave);
 
     videoElement.addEventListener('volumechange', syncVolumeUi);
     document.addEventListener('fullscreenchange', syncFullscreenUi);
+    document.addEventListener('webkitfullscreenchange', syncFullscreenUi);
+    document.addEventListener('mozfullscreenchange', syncFullscreenUi);
+    document.addEventListener('MSFullscreenChange', syncFullscreenUi);
 
     syncVolumeUi();
     syncFullscreenUi();
-    scheduleHideControls();
+    scheduleHideControls(INITIAL_HIDE_DELAY);
 }
 
 let currentPrograms = [];
@@ -508,23 +640,31 @@ function updateGuideContent() {
         const cleanEpisode = escapeHtml(program.episode);
         const cleanDescription = escapeHtml(program.description);
         const hasDescription = program.description && program.description.trim().length > 0;
+        const dateInfoText = formatDateInfo(program.startTime, program.stopTime);
+        const safeDateInfo = escapeHtml(dateInfoText);
+
+        const timeRange = formatTimeRange(program.startTime, program.stopTime);
 
         return `
                 <div class="program-item ${program.isCurrent ? 'current' : ''} ${!hasDescription ? 'no-description' : ''} entering" 
                      onclick="toggleProgramDetails(this)" 
                      style="${!hasDescription ? 'cursor: default;' : ''} animation-delay: ${index * 100}ms;">
                     <div class="program-header">
-                        <div>
+                        <div class="program-info">
                             <h3 class="program-title">${cleanTitle}</h3>
                             ${program.episode ? `<p class="program-episode">${cleanEpisode}</p>` : ''}
                         </div>
-                        <div class="program-time">
-                            <div class="time-range">${formatTimeRange(program.startTime, program.stopTime)}</div>
-                            ${formatDateInfo(program.startTime, program.stopTime) ? `<div class="date-info">${formatDateInfo(program.startTime, program.stopTime)}</div>` : ''}
+                        <div class="program-time-block">
+                            <div class="program-time-row">
+                                ${program.isCurrent ? '<span class="live-badge"></span>' : ''}
+                                <div class="program-time">
+                                    <div class="time-range">${timeRange}</div>
+                                </div>
+                            </div>
+                            ${dateInfoText ? `<div class="date-info">${safeDateInfo}</div>` : ''}
                         </div>
                     </div>
                     ${hasDescription ? `<div class="program-description">${cleanDescription}</div>` : ''}
-                    ${program.isCurrent ? '<span class="live-badge">LIVE</span>' : ''}
                 </div>
                 `;
     }).join('');
@@ -620,7 +760,7 @@ function updateGuide() {
 }
 
 function matchGuideHeightToVideo() {
-    if (window.innerWidth >= 1200) {
+    if (window.innerWidth >= 1201) {
         const videoSection = document.querySelector('.video-section');
         const guideContainer = document.querySelector('.guide-container');
 
@@ -656,11 +796,11 @@ function matchGuideHeightToVideo() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('click-overlay').style.display = 'block';
 
     const overlay = document.getElementById('click-overlay');
-    overlay.addEventListener('click', function() {
+    overlay.addEventListener('click', function () {
         console.log('Play button clicked - initializing...');
         const video = document.getElementById('andromeda-player');
 
@@ -681,7 +821,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoElement = document.getElementById('andromeda-player');
     const videoContainer = document.querySelector('.video-container');
 
-    if (isFirefox) {
+    const prefersTouch = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    if (isFirefox && !prefersTouch) {
         enableFirefoxCustomControls(videoElement, videoContainer);
     } else if (videoElement && videoContainer) {
         const showNativeControls = () => videoElement.setAttribute('controls', '');
@@ -713,7 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(matchGuideHeightToVideo, 5000);
     }
 
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         clearTimeout(window.resizeTimeout);
         window.resizeTimeout = setTimeout(matchGuideHeightToVideo, 250);
     });
