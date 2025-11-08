@@ -1,14 +1,9 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/syphant/andromeda-web/refs/heads/main/logo.png" /><br><br>
-</p>
+<div align="center">
+  <h2>Andromeda</h2>
+  <p>A customizable template of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.</p><br>
+  <img src="https://raw.githubusercontent.com/ccorb324/andromeda-web/refs/heads/main/preview.png" />
+</div>
 
-<p align="center">
-  A modern implementation of a web interface for viewing an ErsatzTV channel livestream with an integrated TV guide display.
-</p>
-
-<p align="center">
-  <br><a href="https://andromedatv.cc/" target="_blank"><img src="https://img.shields.io/badge/DEMO-3388FE?style=for-the-badge"></a><br>
-</p>
 
 ## Features
 
@@ -77,7 +72,7 @@ README.md                      # This file
 - Your own domain
 
 ### Caddy Configuration
-#### Example Caddy docker compose file for this implementation (using Caddy build with Cloudflare module):
+#### Example Caddy docker compose file (using Caddy build with Cloudflare module):
 ```
 services:
   caddy:
@@ -120,9 +115,9 @@ The `nginx/default.conf` file template provides:
 - XMLTV guide data proxy (`/guide/`)
 - CORS headers for cross-origin requests
 - URL rewriting for seamless integration
-- Simply replace `subdomain.yourdomain.com` in the `nginx/default.conf` file with what you configured in Cloudflare Tunnel
+- Simply replace `http://subdomain.yourdomain.com` in the `nginx/default.conf` file with what you configured in Cloudflare Tunnel
 
-#### Example Nginx docker compose file for this implementation:
+#### Example Nginx docker compose file:
 ```
 services:
   nginx:
@@ -139,9 +134,9 @@ services:
 ### ErsatzTV Integration
 - **Stream URL**: `https://subdomain.yourdomain.com/iptv/channel/4.m3u8?mode=segmenter`
 - **Guide Data**: `https://subdomain.yourdomain.com/iptv/xmltv.xml`
-- **Channel**: Current JavaScript implementation is configured for channel 4 (XMLTV: `C4.148.ersatztv.org`), you can change this in the JS scripts if needed
+- **Channel**: Current scripts are configured for `C1.148.ersatztv.org`, you can change this in the `index.js` file if needed based on the channel ID shown in your XMLTV file
 
-#### Example ErsatzTV docker compose file for this implementation:
+#### Example ErsatzTV docker compose file:
 ```
 services:
   ersatztv:
