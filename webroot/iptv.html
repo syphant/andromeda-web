@@ -21,56 +21,42 @@
 
 <body>
     <div class="page-wrapper">
-        <div class="container">
-            <a href="/" class="back-link">
-                ← back
-            </a>
+        <main class="iptv-content">
+            <a href="/" class="back-link">← Back</a>
+            <h1 class="page-title">IPTV Setup</h1>
+            <p class="page-intro">Bring Andromeda into your favorite IPTV client using the secure playlist and guide links below.</p>
 
-        <h1>IPTV Setup</h1>
-
-        <div class="urls-section">
-            <h2>Connection URLs</h2>
-            
-            <div class="url-group">
-                <div class="url-label">M3U:</div>
-                <div class="url-box" onclick="copyToClipboard(this, 'https://aex.andromedatv.cc/iptv/channels.m3u')">
-                    https://aex.andromedatv.cc/iptv/channels.m3u
+            <section class="glass-card urls-card">
+                <div class="url-group">
+                    <div class="url-label">M3U Playlist</div>
+                    <div class="url-box" role="button" tabindex="0" onclick="copyToClipboard(this, 'https://aex.andromedatv.cc/iptv/channels.m3u')" onkeydown="copyOnKey(event, this, 'https://aex.andromedatv.cc/iptv/channels.m3u')">
+                        https://aex.andromedatv.cc/iptv/channels.m3u
+                    </div>
                 </div>
-            </div>
 
-            <div class="url-group">
-                <div class="url-label">XMLTV:</div>
-                <div class="url-box" onclick="copyToClipboard(this, 'https://aex.andromedatv.cc/iptv/xmltv.xml')">
-                    https://aex.andromedatv.cc/iptv/xmltv.xml
+                <div class="url-group">
+                    <div class="url-label">XMLTV Guide</div>
+                    <div class="url-box" role="button" tabindex="0" onclick="copyToClipboard(this, 'https://aex.andromedatv.cc/iptv/xmltv.xml')" onkeydown="copyOnKey(event, this, 'https://aex.andromedatv.cc/iptv/xmltv.xml')">
+                        https://aex.andromedatv.cc/iptv/xmltv.xml
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <div class="instructions">
-            <h2>Setup Instructions</h2>
-            
-            <p><strong>For most IPTV clients (TiviMate, IPTV Smarters, etc):</strong></p>
-            <ul>
-                <li>Look for "Add Playlist" or "M3U URL" option</li>
-                <li>Enter the M3U URL provided above</li>
-                <li>If your client supports EPG (Electronic Program Guide), add the XMLTV URL</li>
-                <li>Save and refresh your channel list</li>
-            </ul>
+            <section class="glass-card instructions-card">
+                <div class="url-label">Most modern IPTV apps like TiviMate or IPTV Smarters follow the same basic flow:</div>
+                <ul>
+                    <li>Choose the option to add a playlist or enter an M3U URL.</li>
+                    <li>Paste the M3U playlist link and confirm the connection.</li>
+                    <li>Add the XMLTV guide URL if your client supports program guides.</li>
+                    <li>Save, then refresh or reload your channel list.</li>
+                </ul>
 
-            <div class="note">
-                <p><strong>Note:</strong> The channel list and program guide are updated automatically. If you experience any issues, try refreshing your playlist or restarting your IPTV client.</p>
-            </div>
-        </div>
+                <div class="note">
+                    <strong>Note:</strong> The playlist and guide data update automatically. If something is missing or looks out of date, refresh the playlist or restart your app to pull the latest data.
+                </div>
+            </section>
+        </main>
     </div>
-    </div>
-
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="/">Home</a>
-            <a href="/schedule">Schedule</a>
-            <!--<a href="mailto:email@example.com">Contact</a>-->
-        </div>
-    </footer>
 </body>
 
 </html>
